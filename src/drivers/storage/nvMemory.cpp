@@ -28,7 +28,7 @@ bool nvMemory::saveConfig(TSettings* Settings)
         Serial.println(F("SPIFS: Saving configuration."));
 
         // Create a JSON document
-        StaticJsonDocument<512> json;
+        StaticJsonDocument<1024> json;
         json[JSON_SPIFFS_KEY_POOLURL] = Settings->PoolAddress;
         json[JSON_SPIFFS_KEY_POOLPORT] = Settings->PoolPort;
         json[JSON_SPIFFS_KEY_POOLPASS] = Settings->PoolPassword;
@@ -36,6 +36,7 @@ bool nvMemory::saveConfig(TSettings* Settings)
         json[JSON_SPIFFS_KEY_TIMEZONE] = Settings->Timezone;
         json[JSON_SPIFFS_KEY_STATS2NV] = Settings->saveStats;
         json[JSON_SPIFFS_KEY_INVCOLOR] = Settings->invertColors;
+        json[JSON_SPIFFS_KEY_HASHLEDS] = Settings->hashLEDs;
 
         // Open config file
         File configFile = SPIFFS.open(JSON_CONFIG_FILE, "w");
@@ -82,7 +83,7 @@ bool nvMemory::loadConfig(TSettings* Settings)
             if (configFile)
             {
                 Serial.println("SPIFS: Loading config file");
-                StaticJsonDocument<512> json;
+                StaticJsonDocument<1024> json;
                 DeserializationError error = deserializeJson(json, configFile);
                 configFile.close();
                 serializeJsonPretty(json, Serial);
@@ -102,6 +103,11 @@ bool nvMemory::loadConfig(TSettings* Settings)
                         Settings->invertColors = json[JSON_SPIFFS_KEY_INVCOLOR].as<bool>();
                     } else {
                         Settings->invertColors = false;
+                    }
+                    if (json.containsKey(JSON_SPIFFS_KEY_HASHLEDS)) {
+                        Settings->hashLEDs = json[JSON_SPIFFS_KEY_HASHLEDS].as<bool>();
+                    } else {
+                        Settings->hashLEDs = false;
                     }
                     return true;
                 }
